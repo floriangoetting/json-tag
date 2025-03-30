@@ -1,9 +1,5 @@
 homepage: "https://www.floriangoetting.de"
 documentation: "https://github.com/floriangoetting/json-tag"
 versions:
-  - sha: 005ac463cc5df130004afa1fedef818e6b39f481
+  - sha: xxx
     changeNotes: Initial release.
-  - sha: 0a497f590da0c8f996cfbf9a4e45d2c03a898f79
-    changeNotes: Support jsDelivr and self hosting the JSON Tag Library
-  - sha: 34d6537857f9bed4b34fb7efd190cc3e27841e2d
-    changeNotes: first commit

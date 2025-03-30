@@ -311,7 +311,7 @@ if (globalConfig.libraryHost === 'jsDelivr') {
 if (libraryUrl) {
   injectScript(libraryUrl, sendRequest, data.gtmOnFailure, 'jsonTagLibrary');
 } else {
-  //if GTM hosting is set, just send the request without any script injections
+  //if hosting is set to none, just send the request without any script injections
   sendRequest();
 }
 
