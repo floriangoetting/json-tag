@@ -7,7 +7,7 @@ The JSON Tag Template was created to provide a vendor agnostic way to send JSON 
 ## Usage and Configuration Options
 Add this template to your container and create a new "JSON Tag". Select your JSON Tag Variable in the "Global Settings Configuration Variable" field. If you do not have this Variable yet. Please check https://github.com/floriangoetting/json-tag-variable on how to install and configure the JSON Tag Variable.
 
-It is also a prerequisite to have the JSON Client template installed and a JSON Client configured on your ssGTM Instance. See: 'tbd link'
+It is also a prerequisite to have the JSON Client template installed and a JSON Client configured on your ssGTM Instance. See: https://github.com/floriangoetting/json-client.
 
 Set an Event Name and pick one of the predefined Event Types or define your own one.
 
