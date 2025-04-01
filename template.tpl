@@ -269,10 +269,11 @@ const cleanEventData = function(obj) {
   }
 };
 
-const idServiceDataInDl = () => {
-  const device_id = copyFromDataLayer('device_id');
-  const session_id = copyFromDataLayer('session_id');
-  if(typeof device_id === 'undefined' && typeof session_id === 'undefined'){
+const responseDataInDl = () => {
+  const device_id = copyFromDataLayer('jsonclient.device_id');
+  const session_id = copyFromDataLayer('jsonclient.session_id');
+  const tags = copyFromDataLayer('jsonclient.tags');
+  if(typeof device_id === 'undefined' && typeof session_id === 'undefined' && typeof tags === 'undefined'){
     return false;
   }
   
@@ -283,7 +284,7 @@ const sendRequest = () => {
   const url = globalConfig.endpointHostname + globalConfig.endpointPath;
   const payload = buildPayload();
   const dataLayerOptions = {
-    'idsInDataLayer': idServiceDataInDl(),
+    'responseInDataLayer': responseDataInDl(),
     'dataLayerName': globalConfig.dataLayerName,
     'dataLayerEventName': globalConfig.dataLayerEventName
   };
@@ -293,7 +294,7 @@ const sendRequest = () => {
     url,
     payload,
     globalConfig.enableGzip,
-    globalConfig.pushIdsInDataLayer ? dataLayerOptions : false,
+    globalConfig.pushResponseInDataLayer ? dataLayerOptions : false,
     data.eventSendingMethod
   );
 

@@ -49,7 +49,7 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod)
                 })
                 .then( data => {
                     //success case
-                    pushIdsToDataLayer(data,dataLayerOptions);
+                    pushResponseToDataLayer(data,dataLayerOptions);
                     return data;
                 })
                 .catch( error => {
@@ -73,7 +73,7 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod)
             })
             .then( data => {
                 //success case
-                pushIdsToDataLayer(data,dataLayerOptions);
+                pushResponseToDataLayer(data,dataLayerOptions);
                 return data;
             })
             .catch( error => {
@@ -82,27 +82,35 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod)
             });
         }
     }
-    function pushIdsToDataLayer(data, dataLayerOptions){
-        if (dataLayerOptions && !dataLayerOptions.idsInDataLayer) {
+    function pushResponseToDataLayer(data, dataLayerOptions) {
+        if (dataLayerOptions && !dataLayerOptions.responseInDataLayer) {
             const dataLayerName = dataLayerOptions.dataLayerName;
             const dataLayerEventName = dataLayerOptions.dataLayerEventName;
-
+    
             window[dataLayerName] = window[dataLayerName] || [];
-
-            const eventData = { 'event': dataLayerEventName };
-
+    
+            const eventData = { event: dataLayerEventName };
+            const jsonclient = {};
+    
             if (data.device_id) {
-                eventData.device_id = data.device_id;
+                jsonclient.device_id = data.device_id;
             }
             if (data.session_id) {
-                eventData.session_id = data.session_id;
+                jsonclient.session_id = data.session_id;
             }
-
+            if (data.tags) {
+                jsonclient.tags = data.tags;
+            }
+    
+            if (Object.keys(jsonclient).length > 0) {
+                eventData.jsonclient = jsonclient;
+            }
+    
             if (Object.keys(eventData).length > 1) { 
                 window[dataLayerName].push(eventData);
                 return true;
             }
         }
         return false;
-    }
+    }    
 };
