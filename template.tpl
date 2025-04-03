@@ -229,60 +229,11 @@ const buildPayload = () => {
     }
   }
   
-  //clean payload data if cleaning is enabled
-  if(globalConfig.cleanPayloadValues){
-    cleanEventData(eventData);
-  }
-  
   //set event name and event type
   eventData.event_name = data.eventName;
   eventData.event_type = data.eventType == 'custom' ? data.customEventType : data.eventType;
   
   return eventData;
-};
-
-const cleanEventData = function(obj) {
-  // is array helper function
-  const isArray = function(value) {
-    return typeof value === 'object' && value !== null && typeof value.length === 'number';
-  };
-
-  // Helper function to check if array is "empty" (only contains removable values)
-  const isEmptyArray = function(arr) {
-    return arr.every(item => 
-      item === null || item === undefined || item !== item || // NaN check
-      (typeof item === 'string' && item.trim() === '') || 
-      (typeof item === 'object' && item !== null && Object.keys(item).length === 0)
-    );
-  };
-
-  for (const key in obj) {
-    const value = obj[key];
-
-    if (value === null || value === undefined || value !== value || 
-        (typeof value === 'string' && value.trim() === '') || 
-        (isArray(value) && value.length === 0) || 
-        (typeof value === 'object' && !isArray(value) && Object.keys(value).length === 0)) {
-      Object.delete(obj,key); // delete invalid values
-    } 
-    else if (isArray(value)) {
-      // recursively clean array values
-      obj[key] = value.map(item => (typeof item === 'object' ? cleanEventData(item) : item));
-
-      // If the array is empty after cleaning or only contains invalid values, remove
-      if (obj[key].length === 0 || isEmptyArray(obj[key])) {
-        Object.delete(obj,key); // delete invalid values
-      }
-    }
-    else if (typeof value === 'object') {
-      cleanEventData(value);
-
-      // If the cleaned object is empty, remove
-      if (Object.keys(value).length === 0) {
-        Object.delete(obj,key); // delete invalid values
-      }
-    }
-  }
 };
 
 const responseDataInDl = () => {
@@ -311,7 +262,8 @@ const sendRequest = () => {
     payload,
     globalConfig.enableGzip,
     globalConfig.pushResponseInDataLayer ? dataLayerOptions : false,
-    data.eventSendingMethod
+    data.eventSendingMethod,
+    globalConfig.cleanPayload
   );
 
   data.gtmOnSuccess();

@@ -1,4 +1,8 @@
-function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod){
+function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod, cleanPayload){
+    //clean payload
+    if(cleanPayload){
+        payload = cleanEventData(payload);
+    }
     let post_headers = {
         'Content-Type': 'application/json'
     };
@@ -82,6 +86,21 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod)
             });
         }
     }
+    function cleanEventData(obj) {
+        if (Array.isArray(obj)) {
+          return obj
+            .map(cleanEventData)  // Clean each item recursively
+            .filter(item => !(item === null || item === undefined || item === '' || (typeof item === 'object' && Object.keys(item).length === 0)));
+        } 
+        else if (typeof obj === 'object' && obj !== null) {
+          return Object.fromEntries(
+            Object.entries(obj)
+              .map(([key, value]) => [key, cleanEventData(value)])  // Clean each property recursively
+              .filter(([, value]) => !(value === null || value === undefined || value === '' || (typeof value === 'object' && Object.keys(value).length === 0)))
+          );
+        }
+        return obj;
+    };
     function pushResponseToDataLayer(data, dataLayerOptions) {
         if (dataLayerOptions && !dataLayerOptions.responseInDataLayer) {
             const dataLayerName = dataLayerOptions.dataLayerName;
