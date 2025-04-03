@@ -247,23 +247,39 @@ const cleanEventData = function(obj) {
     return typeof value === 'object' && value !== null && typeof value.length === 'number';
   };
 
-  // recursively clean the object
+  // Helper function to check if array is "empty" (only contains removable values)
+  const isEmptyArray = function(arr) {
+    return arr.every(item => 
+      item === null || item === undefined || item !== item || // NaN check
+      (typeof item === 'string' && item.trim() === '') || 
+      (typeof item === 'object' && item !== null && Object.keys(item).length === 0)
+    );
+  };
+
   for (const key in obj) {
     const value = obj[key];
-    // check if the value is null, undefined, NaN, an empty String, an empty array or an empty object
+
     if (value === null || value === undefined || value !== value || 
         (typeof value === 'string' && value.trim() === '') || 
         (isArray(value) && value.length === 0) || 
-        (typeof value === 'object' && Object.keys(value).length === 0)) {
-      Object.delete(obj, key); // removes the attribut if it has an invalid value
+        (typeof value === 'object' && !isArray(value) && Object.keys(value).length === 0)) {
+      Object.delete(obj,key); // delete invalid values
     } 
-    // If the value is an object, call the function recursively
+    else if (isArray(value)) {
+      // recursively clean array values
+      obj[key] = value.map(item => (typeof item === 'object' ? cleanEventData(item) : item));
+
+      // If the array is empty after cleaning or only contains invalid values, remove
+      if (obj[key].length === 0 || isEmptyArray(obj[key])) {
+        Object.delete(obj,key); // delete invalid values
+      }
+    }
     else if (typeof value === 'object') {
       cleanEventData(value);
 
-      // If the cleaned object is empty, also remove it from the main structure
+      // If the cleaned object is empty, remove
       if (Object.keys(value).length === 0) {
-        Object.delete(obj, key);  // Deletes the empty object
+        Object.delete(obj,key); // delete invalid values
       }
     }
   }
