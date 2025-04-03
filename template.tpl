@@ -180,7 +180,6 @@ const Object = require('Object');
 const JSON = require('JSON');
 const injectScript = require('injectScript');
 const callInWindow = require('callInWindow');
-const copyFromDataLayer = require('copyFromDataLayer');
 const getContainerVersion = require('getContainerVersion');
 const makeTableMap = require('makeTableMap');
 const containerVersion = getContainerVersion();
@@ -236,22 +235,10 @@ const buildPayload = () => {
   return eventData;
 };
 
-const responseDataInDl = () => {
-  const device_id = copyFromDataLayer('jsonclient.device_id');
-  const session_id = copyFromDataLayer('jsonclient.session_id');
-  const tags = copyFromDataLayer('jsonclient.tags');
-  if(typeof device_id === 'undefined' && typeof session_id === 'undefined' && typeof tags === 'undefined'){
-    return false;
-  }
-  
-  return true;
-};
-
 const sendRequest = () => {
   const url = globalConfig.endpointHostname + globalConfig.endpointPath;
   const payload = buildPayload();
   const dataLayerOptions = {
-    'responseInDataLayer': responseDataInDl(),
     'dataLayerName': globalConfig.dataLayerName,
     'dataLayerEventName': globalConfig.dataLayerEventName
   };
@@ -377,27 +364,6 @@ ___WEB_PERMISSIONS___
         "versionId": "1"
       },
       "param": []
-    },
-    "isRequired": true
-  },
-  {
-    "instance": {
-      "key": {
-        "publicId": "read_data_layer",
-        "versionId": "1"
-      },
-      "param": [
-        {
-          "key": "allowedKeys",
-          "value": {
-            "type": 1,
-            "string": "any"
-          }
-        }
-      ]
-    },
-    "clientAnnotations": {
-      "isEditedByUser": true
     },
     "isRequired": true
   },

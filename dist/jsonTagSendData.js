@@ -102,7 +102,7 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
         return obj;
     };
     function pushResponseToDataLayer(data, dataLayerOptions) {
-        if (dataLayerOptions && !dataLayerOptions.responseInDataLayer) {
+        if (dataLayerOptions) {
             const dataLayerName = dataLayerOptions.dataLayerName;
             const dataLayerEventName = dataLayerOptions.dataLayerEventName;
     
@@ -125,7 +125,8 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
                 eventData.jsonclient = jsonclient;
             }
     
-            if (Object.keys(eventData).length > 1) { 
+            if (Object.keys(eventData).length > 1) {
+                eventData._clear = true;
                 window[dataLayerName].push(eventData);
                 return true;
             }
