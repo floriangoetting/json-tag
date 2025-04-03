@@ -1,5 +1,5 @@
 homepage: "https://www.floriangoetting.de"
 documentation: "https://github.com/floriangoetting/json-tag"
 versions:
-  - sha: xxx
+  - sha: 57d1c0ff7d49b579ce7b7edd56ceae43c4298d1b
     changeNotes: Initial release.
