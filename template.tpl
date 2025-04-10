@@ -182,6 +182,8 @@ const injectScript = require('injectScript');
 const callInWindow = require('callInWindow');
 const getContainerVersion = require('getContainerVersion');
 const makeTableMap = require('makeTableMap');
+const encodeUri = require('encodeUri');
+
 const containerVersion = getContainerVersion();
 
 let eventData = {};
@@ -236,7 +238,7 @@ const buildPayload = () => {
 };
 
 const sendRequest = () => {
-  const url = globalConfig.endpointHostname + globalConfig.endpointPath;
+  const url = encodeUri(globalConfig.endpointHostname + globalConfig.endpointPath);
   const payload = buildPayload();
   const dataLayerOptions = {
     'dataLayerName': globalConfig.dataLayerName,
@@ -247,7 +249,7 @@ const sendRequest = () => {
     'jsonTagSendData',
     url,
     payload,
-    globalConfig.enableGzip,
+    globalConfig.enableGzip == 'false' ? false : globalConfig.enableGzip,
     globalConfig.pushResponseInDataLayer ? dataLayerOptions : false,
     data.eventSendingMethod,
     globalConfig.cleanPayload
@@ -259,9 +261,9 @@ const sendRequest = () => {
 var libraryUrl = null;
 //inject JSON Tag Library if Library Host is set to jsDelivr or Self-hosted
 if (globalConfig.libraryHost === 'jsDelivr') {
-  libraryUrl = 'https://cdn.jsdelivr.net/gh/floriangoetting/json-tag@' + globalConfig.libraryVersion + '/dist/jsonTagSendData-min.js';
+  libraryUrl = encodeUri('https://cdn.jsdelivr.net/gh/floriangoetting/json-tag@' + globalConfig.libraryVersion + '/dist/jsonTagSendData-min.js');
 } else if (globalConfig.libraryHost === 'selfHosted') {
-  libraryUrl = globalConfig.libraryUrl;
+  libraryUrl = encodeUri(globalConfig.libraryUrl);
 }
 
 if (libraryUrl) {

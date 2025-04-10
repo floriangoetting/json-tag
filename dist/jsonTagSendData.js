@@ -3,6 +3,9 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
     if(cleanPayload){
         payload = cleanEventData(payload);
     }
+    
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent); // Safari has issues with compressionStream :/
+    
     let post_headers = {
         'Content-Type': 'application/json'
     };
@@ -15,7 +18,7 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
     if( sendMethod === 'sendBeacon' ){
         navigator.sendBeacon( url, JSON.stringify(payload) );
     } else {
-        if( enableGzip && typeof(CompressionStream) === 'function' ){
+        if( !isSafari && enableGzip && typeof(CompressionStream) === 'function' ){
             //send json gzip compressed
             Object.assign(post_headers, {
                 'Content-Encoding': 'gzip'
@@ -43,7 +46,7 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
                     method: 'POST',
                     credentials: 'include',
                     headers: post_headers,
-                    body: blob // sent JSON gzipped
+                    body: blob // send JSON gzipped
                 })
                 .then( response => {
                     if( !response.ok ){
@@ -64,10 +67,10 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
         } else {  
             //send json uncompressed   
             fetch( url, {
-            method: 'POST',
-            credentials: 'include',
-            headers: post_headers,
-            body: JSON.stringify(payload) // JSON-Body uncompressed!
+                method: 'POST',
+                credentials: 'include',
+                headers: post_headers,
+                body: JSON.stringify(payload) // JSON-Body uncompressed!
             })
             .then( response => {
                 if( !response.ok ){
@@ -88,16 +91,16 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
     }
     function cleanEventData(obj) {
         if (Array.isArray(obj)) {
-          return obj
+            return obj
             .map(cleanEventData)  // Clean each item recursively
             .filter(item => !(item === null || item === undefined || item === '' || (typeof item === 'object' && Object.keys(item).length === 0)));
-        } 
+        }
         else if (typeof obj === 'object' && obj !== null) {
-          return Object.fromEntries(
-            Object.entries(obj)
-              .map(([key, value]) => [key, cleanEventData(value)])  // Clean each property recursively
-              .filter(([, value]) => !(value === null || value === undefined || value === '' || (typeof value === 'object' && Object.keys(value).length === 0)))
-          );
+            return Object.fromEntries(
+                Object.entries(obj)
+                .map(([key, value]) => [key, cleanEventData(value)])  // Clean each property recursively
+                .filter(([, value]) => !(value === null || value === undefined || value === '' || (typeof value === 'object' && Object.keys(value).length === 0)))
+            );
         }
         return obj;
     };
@@ -126,7 +129,7 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
             }
     
             if (Object.keys(eventData).length > 1) {
-                eventData._clear = true;
+                eventData._clear = true; 
                 window[dataLayerName].push(eventData);
                 return true;
             }
