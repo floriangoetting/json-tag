@@ -1,20 +1,10 @@
-const logToConsole = require('logToConsole');
 const Object = require('Object');
 const injectScript = require('injectScript');
 const callInWindow = require('callInWindow');
-const getContainerVersion = require('getContainerVersion');
 const makeTableMap = require('makeTableMap');
 const encodeUri = require('encodeUri');
 
-const containerVersion = getContainerVersion();
-
 let eventData = {};
-
-const isDebug = !!(containerVersion && (containerVersion.debugMode || containerVersion.previewMode));
-
-const log = msg => {
-   if( isDebug ) logToConsole('[JSON Tag]', msg);
-};
 
 const getGlobalConfiguration = () => {
    // Fail if invalid variable
