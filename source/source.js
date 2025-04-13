@@ -1,6 +1,5 @@
 const logToConsole = require('logToConsole');
 const Object = require('Object');
-const JSON = require('JSON');
 const injectScript = require('injectScript');
 const callInWindow = require('callInWindow');
 const getContainerVersion = require('getContainerVersion');
