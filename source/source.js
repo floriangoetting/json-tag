@@ -8,16 +8,11 @@ let eventData = {};
 
 const getGlobalConfiguration = () => {
    // Fail if invalid variable
-   if (
-      data.globalConfig !== 'select' &&
-      data.globalConfig.type !== 'jsontag'
-   ) {
+   if (  data.globalConfig !== 'select' && data.globalConfig.type !== 'jsontag' ) {
       return false;
    }
 
-   const config = data.globalConfig !== 'select' ? data.globalConfig : {};
-
-   return config;
+   return data.globalConfig === 'select' ? {} : data.globalConfig;
 };
 
 const globalConfig = getGlobalConfiguration();
@@ -25,8 +20,7 @@ const globalConfig = getGlobalConfiguration();
 const buildPayload = () => {
    //global payload data
    if(typeof globalConfig.globalPayloadData !== 'undefined'){
-      const globalEventData = makeTableMap(globalConfig.globalPayloadData, 'payloadKey', 'payloadValue');
-      eventData = globalEventData;
+      eventData = makeTableMap( globalConfig.globalPayloadData, 'payloadKey', 'payloadValue' );
    }
 
    //event payload data
