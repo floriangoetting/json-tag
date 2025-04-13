@@ -4,6 +4,14 @@
 
 The JSON Tag Template was created to provide a vendor agnostic way to send JSON Payloads from the client-side Google Tag Manager to the server-side Google Tag Manager. It also includes an ID Service to create long lasting server-side set (HTTP-Only) cookies for visitor and session identification.
 
+## How to install this custom template 
+To install a custom template you need to have the template.tpl file on your local machine.
+
+For this template you can either download this file directly from GitHub or clone this repo. What you need to keep in mind is that, if there is a new version of the template, you will need to get the latest state again. There is no way to automatically update the template when its not in the "Gallery".
+When you have the file, you can add it in GTM. 
+
+In GTM navigate to templates, select New in the Tag Templates, than click on 3 dots in the top right corner and select Import. This will open file explorer where you need to find your template.tpl file, import and save the template.
+
 ## Usage and Configuration Options
 Add this template to your container and create a new "JSON Tag". Select your JSON Tag Variable in the "Global Settings Configuration Variable" field. If you do not have this Variable yet. Please check https://github.com/floriangoetting/json-tag-variable on how to install and configure the JSON Tag Variable.
 
