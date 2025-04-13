@@ -57,7 +57,7 @@ const sendRequest = () => {
       'dataLayerEventName': globalConfig.dataLayerEventName
    };
 
-   const result = callInWindow(
+   callInWindow(
       'jsonTagSendData',
       url,
       payload,
