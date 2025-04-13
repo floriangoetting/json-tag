@@ -44,7 +44,7 @@ const buildPayload = () => {
 
    //set event name and event type
    eventData.event_name = data.eventName;
-   eventData.event_type = data.eventType == 'custom' ? data.customEventType : data.eventType;
+   eventData.event_type = data.eventType === 'custom' ? data.customEventType : data.eventType;
 
    return eventData;
 };
@@ -61,7 +61,7 @@ const sendRequest = () => {
       'jsonTagSendData',
       url,
       payload,
-      globalConfig.enableGzip == 'false' ? false : globalConfig.enableGzip,
+      globalConfig.enableGzip === 'false' ? false : globalConfig.enableGzip,
       globalConfig.pushResponseInDataLayer ? dataLayerOptions : false,
       data.eventSendingMethod,
       globalConfig.cleanPayload
@@ -78,7 +78,7 @@ if (globalConfig.libraryHost === 'jsDelivr') {
    libraryUrl = encodeUri(globalConfig.libraryUrl);
 }
 
-if (libraryUrl) {
+if (libraryUrl === null) {
    injectScript(libraryUrl, sendRequest, data.gtmOnFailure, 'jsonTagLibrary');
 } else {
    //if hosting is set to none, just send the request without any script injections
