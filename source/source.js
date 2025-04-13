@@ -1,14 +1,14 @@
-const Object = require('Object');
-const injectScript = require('injectScript');
-const callInWindow = require('callInWindow');
-const makeTableMap = require('makeTableMap');
-const encodeUri = require('encodeUri');
+const Object = require( 'Object' );
+const injectScript = require( 'injectScript' );
+const callInWindow = require( 'callInWindow' );
+const makeTableMap = require( 'makeTableMap' );
+const encodeUri = require( 'encodeUri' );
 
 let eventData = {};
 
 const getGlobalConfiguration = () => {
    // Fail if invalid variable
-   if (  data.globalConfig !== 'select' && data.globalConfig.type !== 'jsontag' ) {
+   if ( data.globalConfig !== 'select' && data.globalConfig.type !== 'jsontag' ) {
       return false;
    }
 
@@ -19,20 +19,20 @@ const globalConfig = getGlobalConfiguration();
 
 const buildPayload = () => {
    //global payload data
-   if(typeof globalConfig.globalPayloadData !== 'undefined'){
+   if ( typeof globalConfig.globalPayloadData !== 'undefined' ) {
       eventData = makeTableMap( globalConfig.globalPayloadData, 'payloadKey', 'payloadValue' );
    }
 
    //event payload data
-   if(typeof data.payloadData !== 'undefined'){
-      const eventSpecificData = makeTableMap(data.payloadData, 'payloadKey', 'payloadValue');
+   if ( typeof data.payloadData !== 'undefined' ) {
+      const eventSpecificData = makeTableMap( data.payloadData, 'payloadKey', 'payloadValue' );
       //if no global payload data is present, no loop is necessary
-      if(Object.keys(eventData).length === 0){
+      if ( Object.keys( eventData ).length === 0 ) {
          eventData = eventSpecificData;
       } else {
-         Object.keys(eventSpecificData).forEach(function(key) {
+         Object.keys( eventSpecificData ).forEach( function ( key ) {
             eventData[key] = eventSpecificData[key];
-         });
+         } );
       }
    }
 
@@ -44,10 +44,10 @@ const buildPayload = () => {
 };
 
 const sendRequest = () => {
-   const url = encodeUri(globalConfig.endpointHostname + globalConfig.endpointPath);
+   const url = encodeUri( globalConfig.endpointHostname + globalConfig.endpointPath );
    const payload = buildPayload();
    const dataLayerOptions = {
-      'dataLayerName': globalConfig.dataLayerName,
+      'dataLayerName'     : globalConfig.dataLayerName,
       'dataLayerEventName': globalConfig.dataLayerEventName
    };
 
@@ -66,14 +66,14 @@ const sendRequest = () => {
 
 var libraryUrl = null;
 //inject JSON Tag Library if Library Host is set to jsDelivr or Self-hosted
-if (globalConfig.libraryHost === 'jsDelivr') {
-   libraryUrl = encodeUri('https://cdn.jsdelivr.net/gh/floriangoetting/json-tag@' + globalConfig.libraryVersion + '/dist/jsonTagSendData-min.js');
-} else if (globalConfig.libraryHost === 'selfHosted') {
-   libraryUrl = encodeUri(globalConfig.libraryUrl);
+if ( globalConfig.libraryHost === 'jsDelivr' ) {
+   libraryUrl = encodeUri( 'https://cdn.jsdelivr.net/gh/floriangoetting/json-tag@' + globalConfig.libraryVersion + '/dist/jsonTagSendData-min.js' );
+} else if ( globalConfig.libraryHost === 'selfHosted' ) {
+   libraryUrl = encodeUri( globalConfig.libraryUrl );
 }
 
-if (libraryUrl === null) {
-   injectScript(libraryUrl, sendRequest, data.gtmOnFailure, 'jsonTagLibrary');
+if ( libraryUrl === null ) {
+   injectScript( libraryUrl, sendRequest, data.gtmOnFailure, 'jsonTagLibrary' );
 } else {
    //if hosting is set to none, just send the request without any script injections
    sendRequest();
