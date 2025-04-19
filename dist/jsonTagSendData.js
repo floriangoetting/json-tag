@@ -4,7 +4,7 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
         payload = cleanEventData(payload);
     }
     
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent); // Safari has issues with compressionStream :/
+    const isWebKit = /AppleWebKit/i.test(navigator.userAgent) && !/Chrome|CriOS|OPR|Edg|Edge|FxiOS|SamsungBrowser|Android/i.test(navigator.userAgent); // WebKit has issues with compressionStream :/
     
     let post_headers = {
         'Content-Type': 'application/json'
@@ -18,7 +18,7 @@ function jsonTagSendData(url, payload, enableGzip, dataLayerOptions, sendMethod,
     if( sendMethod === 'sendBeacon' ){
         navigator.sendBeacon( url, JSON.stringify(payload) );
     } else {
-        if( !isSafari && enableGzip && typeof(CompressionStream) === 'function' ){
+        if( !isWebKit && enableGzip && typeof(CompressionStream) === 'function' ){
             //send json gzip compressed
             Object.assign(post_headers, {
                 'Content-Encoding': 'gzip'
