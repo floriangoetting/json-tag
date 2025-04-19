@@ -188,12 +188,9 @@ const encodeUri = require( 'encodeUri' );
 let eventData = {};
 
 const getGlobalConfiguration = () => {
-   // Fail if invalid variable
-   if ( data.globalConfig !== 'select' && data.globalConfig.type !== 'jsontag' ) {
-      return false;
-   }
-
-   return data.globalConfig === 'select' ? {} : data.globalConfig;
+  if ( data.globalConfig === 'select' ) return {};
+  if ( data.globalConfig.type === 'jsontag' ) return data.globalConfig;
+  return false;
 };
 
 const globalConfig = getGlobalConfiguration();
@@ -253,7 +250,7 @@ if ( globalConfig.libraryHost === 'jsDelivr' ) {
    libraryUrl = encodeUri( globalConfig.libraryUrl );
 }
 
-if ( libraryUrl === null ) {
+if ( libraryUrl !== null ) {
    injectScript( libraryUrl, sendRequest, data.gtmOnFailure, 'jsonTagLibrary' );
 } else {
    //if hosting is set to none, just send the request without any script injections
