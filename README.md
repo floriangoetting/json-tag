@@ -57,6 +57,6 @@ Contributions to any of the Templates are highly welcome! The process to contrib
 8. Create a new pull request for the main repository including an understandable summary of your changes
 
 I will review the pull request and will provide feedback or questions if something is unclear. If everything is fine, your changes will be merged with the main repository and you will be listed in the list of contributors!
-If you want to contribute but you don't know which adjustments make sense, please check the list of issues (https://github.com/floriangoetting/json-tag/issues), where I and others will list features wishes or bug reportings.
+If you want to contribute but you don't know which adjustments make sense, please check the list of issues (https://github.com/floriangoetting/json-tag/issues), where I and others will list feature wishes or bug reportings.
 
 Please note that it is not planned to support GA4 as destination Analytics Tool. If you want to use GA4 or contribute to a project for first party tracking with GA4 support, please check out Stapes Data Tag (https://github.com/stape-io/data-tag).
