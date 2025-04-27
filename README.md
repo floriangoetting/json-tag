@@ -43,3 +43,20 @@ With the Event Sending Method you can define how the event requests should be se
 
 ### Event Payload
 In this section you can specify your Event Specific Payload Key / Value Pairs by defining your JSON Keys and selecting your GTM Variables in the Payload Value fields. Global Payload Data which is relevant for all your JSON Tags should not be specified here but in the JSON Tag Variable instead. See: https://github.com/floriangoetting/json-tag-variable.
+
+## How to contribute to the Template
+Contributions to any of the Templates are highly welcome! The process to contribute works like this:
+
+1. Fork the repository
+2. Pull and merge all updates from the main repository
+3. Make your adjustments to the files locally
+4. Test the Templates with your changes in GTM and ssGTM
+5. If you updated a template.tpl file, please do not replace the full original template.tpl file but only the part from "___TEMPLATE_PARAMETERS___" to the end of the file.
+6. Create small commits with good comments to make it easy to follow your adjustments
+7. Push the Commits
+8. Create a new pull request for the main repository including an understandable summary of your changes
+
+I will review the pull request and will provide feedback or questions if something is unclear. If everything is fine, your changes will be merged with the main repository and you will be listed in the list of contributors!
+If you want to contribute but you don't know which adjustments make sense, please check the list of issues (https://github.com/floriangoetting/json-tag/issues), where I and others will list features wishes or bug reportings.
+
+Please note that it is not planned to support GA4 as destination Analytics Tool. If you want to use GA4 or contribute to a project for first party tracking with GA4 support, please check out Stapes Data Tag (https://github.com/stape-io/data-tag).
