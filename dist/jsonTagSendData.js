@@ -1,97 +1,5 @@
 function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMethod, cleanPayload){
-    //clean payload
-    let payload = {};
-    if(cleanPayload){
-        payload = cleanEventData(origPayload);
-    } else {
-        payload = origPayload;
-    }
-
-    const isWebKit = /AppleWebKit/i.test(navigator.userAgent) && !/Chrome|CriOS|OPR|Edg|Edge|FxiOS|SamsungBrowser|Android/i.test(navigator.userAgent); // WebKit has issues with compressionStream :/
-
-    let post_headers = {
-        'Content-Type': 'application/json'
-    };
-
-    if( typeof (navigator.sendBeacon) !== 'function' ){
-        // in case we do not have sendBeacon, fallback to fetch...
-        sendMethod = 'fetch';
-    }
-
-    if( sendMethod === 'sendBeacon' ){
-        navigator.sendBeacon( url, JSON.stringify(payload) );
-    } else {
-        if( !isWebKit && enableGzip && typeof(CompressionStream) === 'function' ){
-            //send json gzip compressed
-            Object.assign(post_headers, {
-                'Content-Encoding': 'gzip'
-            });
-
-            (async function(){
-                // Convert JSON to Stream
-                const stream = new Blob( [JSON.stringify(payload)], {
-                    'type': 'application/json',
-                }).stream();
-
-                // gzip stream
-                const compressedReadableStream = stream.pipeThrough(
-                    new CompressionStream('gzip')
-                );
-
-                // create Response
-                const compressedResponse = await new Response(compressedReadableStream);
-
-                // Get response Blob
-                const blob = await compressedResponse.blob();
-
-                // fetch data
-                await fetch( url, {
-                    'method': 'POST',
-                    'credentials': 'include',
-                    'headers': post_headers,
-                    'body': blob // send JSON gzipped
-                })
-                .then( response => {
-                    if( !response.ok ){
-                        throw new Error( 'HTTP-Error! Status: '+response.status );
-                    }
-                    return response.json();
-                })
-                .then( data => {
-                    //success case
-                    pushResponseToDataLayer(data,dataLayerOptions);
-                    return data;
-                })
-                .catch( error => {
-                    //error case
-                    console.log(error);
-                });
-            })();
-        } else {  
-            //send json uncompressed   
-            fetch( url, {
-                'method': 'POST',
-                'credentials': 'include',
-                'headers': post_headers,
-                'body': JSON.stringify(payload) // JSON-Body uncompressed!
-            })
-            .then( response => {
-                if( !response.ok ){
-                    throw new Error( 'HTTP-Error! Status: '+response.status );
-                }
-                return response.json();
-            })
-            .then( data => {
-                //success case
-                pushResponseToDataLayer(data,dataLayerOptions);
-                return data;
-            })
-            .catch( error => {
-                //error case
-                console.log(error);
-            });
-        }
-    }
+    //helper functions
     function cleanEventData(obj) {
         if (Array.isArray(obj)) {
             return obj
@@ -155,5 +63,87 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
             }
         }
         return false;
-    }  
+    }
+
+    //send data
+    (async () => {
+        const payload = cleanPayload ? cleanEventData(origPayload) : origPayload;
+
+        const isWebKit = /AppleWebKit/i.test(navigator.userAgent) && !/Chrome|CriOS|OPR|Edg|Edge|FxiOS|SamsungBrowser|Android/i.test(navigator.userAgent); // WebKit has issues with compressionStream :/
+
+        let post_headers = {
+            'Content-Type': 'application/json'
+        };
+
+        if( typeof (navigator.sendBeacon) !== 'function' ){
+            // in case we do not have sendBeacon, fallback to fetch...
+            sendMethod = 'fetch';
+        }
+
+        if( sendMethod === 'sendBeacon' ){
+            navigator.sendBeacon( url, JSON.stringify(payload) );
+            return true;
+        } else {
+            if( !isWebKit && enableGzip && typeof CompressionStream === 'function' ){
+                try {
+                    //send json gzip compressed
+                    Object.assign(post_headers, {
+                        'Content-Encoding': 'gzip'
+                    });
+
+                    // Convert JSON to Stream
+                    const stream = new Blob( [JSON.stringify(payload)], {
+                        'type': 'application/json',
+                    }).stream();
+
+                    const compressedReadableStream = stream.pipeThrough(new CompressionStream('gzip'));
+                    const compressedResponse = new Response(compressedReadableStream);
+                    const blob = await compressedResponse.blob();
+
+                    // fetch data
+                    const response = await fetch( url, {
+                        'method': 'POST',
+                        'credentials': 'include',
+                        'headers': post_headers,
+                        'body': blob // send JSON gzipped
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('HTTP-Error! Status: ' + response.status);
+                    }
+
+                    const data = await response.json();
+                    pushResponseToDataLayer(data, dataLayerOptions);
+                    return data;
+                } catch (error) {
+                    console.log(error);
+                    return null;
+                }
+            } else {
+                try {
+                    //send json uncompressed   
+                    const response = await fetch( url, {
+                        'method': 'POST',
+                        'credentials': 'include',
+                        'headers': post_headers,
+                        'body': JSON.stringify(payload) // JSON-Body uncompressed!
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('HTTP-Error! Status: ' + response.status);
+                    }
+
+                    const data = await response.json();
+                    pushResponseToDataLayer(data, dataLayerOptions);
+                    return data;
+                } catch (error) {
+                    console.log(error);
+                    return null;
+                }
+            }
+        }
+    })();
+
+    //static response for JSON Tag Template callInWindow which only supports synchronous functions
+    return true;
 };

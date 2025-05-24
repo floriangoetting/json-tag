@@ -3,6 +3,7 @@ const injectScript = require( 'injectScript' );
 const callInWindow = require( 'callInWindow' );
 const makeTableMap = require( 'makeTableMap' );
 const encodeUri = require( 'encodeUri' );
+const logToConsole = require( 'logToConsole' );
 
 let eventData = {};
 
@@ -48,7 +49,7 @@ const sendRequest = () => {
       'dataLayerEventName': globalConfig.dataLayerEventName
    };
 
-   callInWindow(
+   const jsonTagSendData = callInWindow(
       'jsonTagSendData',
       url,
       payload,
@@ -58,7 +59,12 @@ const sendRequest = () => {
       globalConfig.cleanPayload
    );
 
-   data.gtmOnSuccess();
+   if(jsonTagSendData){
+      data.gtmOnSuccess();
+   } else {
+      logToConsole('[JSON Tag] The JSON Tag could not be fired. Please make sure to Load the Tag Library and to use the most recent version.');
+      data.gtmOnFailure();
+   }
 };
 
 var libraryUrl = null;
