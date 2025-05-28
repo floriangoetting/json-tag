@@ -237,7 +237,8 @@ const sendRequest = () => {
       globalConfig.enableGzip === 'false' ? false : globalConfig.enableGzip,
       globalConfig.pushResponseInDataLayer ? dataLayerOptions : false,
       data.eventSendingMethod,
-      globalConfig.cleanPayload
+      globalConfig.cleanPayload,
+      globalConfig.addCommonData
    );
 
    if(jsonTagSendData){

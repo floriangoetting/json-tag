@@ -1,5 +1,18 @@
-function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMethod, cleanPayload){
+function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMethod, cleanPayload, addCommonData){
     //helper functions
+    function addCommonDataToPayload(obj){
+        obj.page_location = window.location.href;
+        obj.page_path = window.location.pathname;
+        obj.page_hostname = window.location.hostname;
+        obj.page_referrer = document.referrer;
+        obj.page_title = document.title;
+        obj.page_encoding = document.characterSet;
+        obj.screen_resolution = window.screen && (window.screen.width + 'x' + window.screen.height);
+        obj.viewport_size = window.innerWidth && window.innerHeight && (window.innerWidth + 'x' + window.innerHeight);
+        obj.language = navigator && navigator.language;
+
+        return obj;
+    }
     function cleanEventData(obj) {
         if (Array.isArray(obj)) {
             return obj
@@ -67,9 +80,10 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
 
     //send data
     (async () => {
-        const payload = cleanPayload ? cleanEventData(origPayload) : origPayload;
+        let payload = cleanPayload ? cleanEventData(origPayload) : origPayload;
+        payload = addCommonData ? addCommonDataToPayload(payload) : payload;
 
-        const isWebKit = /AppleWebKit/i.test(navigator.userAgent) && !/Chrome|CriOS|OPR|Edg|Edge|FxiOS|SamsungBrowser|Android/i.test(navigator.userAgent); // WebKit has issues with compressionStream :/
+        const isWebKit = /AppleWebKit/i.test(navigator.userAgent) && !/Chrome|OPR|Edge|SamsungBrowser|Android/i.test(navigator.userAgent); // WebKit has issues with compressionStream :/
 
         let post_headers = {
             'Content-Type': 'application/json'
