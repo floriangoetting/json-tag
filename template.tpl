@@ -143,7 +143,7 @@ ___TEMPLATE_PARAMETERS___
         ],
         "simpleValueType": true,
         "defaultValue": "fetch",
-        "help": "With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Send Beacon Method."
+        "help": "With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Send Beacon Method.\n\nPlease be aware that the \"sendBeacon\" Method does not support gzip compression and does not support custom request headers. This means JSON Tag Events where \"sendBeacon\" is used will always be sent uncompressed and the X-Gtm-Server-Preview header would not be set."
       }
     ]
   },
@@ -238,7 +238,8 @@ const sendRequest = () => {
       globalConfig.pushResponseInDataLayer ? dataLayerOptions : false,
       data.eventSendingMethod,
       globalConfig.cleanPayload,
-      globalConfig.addCommonData
+      globalConfig.addCommonData,
+      globalConfig.xGtmServerPreviewToken
    );
 
    if(jsonTagSendData){

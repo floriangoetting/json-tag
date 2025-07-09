@@ -1,5 +1,5 @@
-function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMethod, cleanPayload, addCommonData){
-    //helper functions
+function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMethod, cleanPayload, addCommonData, xGtmServerPreviewToken){
+    // helper functions
     function addCommonDataToPayload(obj){
         obj.page_location = window.location.href;
         obj.page_path = window.location.pathname;
@@ -78,7 +78,7 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
         return false;
     }
 
-    //send data
+    // send data
     (async () => {
         let payload = cleanPayload ? cleanEventData(origPayload) : origPayload;
         payload = addCommonData ? addCommonDataToPayload(payload) : payload;
@@ -88,6 +88,11 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
         let post_headers = {
             'Content-Type': 'application/json'
         };
+
+        if( xGtmServerPreviewToken ){
+            // add X-Gtm-Server-Preview header to the request if a value is found
+            post_headers['X-Gtm-Server-Preview'] = xGtmServerPreviewToken;
+        }
 
         if( typeof (navigator.sendBeacon) !== 'function' ){
             // in case we do not have sendBeacon, fallback to fetch...
@@ -100,10 +105,8 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
         } else {
             if( !isWebKit && enableGzip && typeof CompressionStream === 'function' ){
                 try {
-                    //send json gzip compressed
-                    Object.assign(post_headers, {
-                        'Content-Encoding': 'gzip'
-                    });
+                    // send json gzip compressed
+                    post_headers['Content-Encoding'] = 'gzip';
 
                     // Convert JSON to Stream
                     const stream = new Blob( [JSON.stringify(payload)], {
@@ -135,7 +138,7 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
                 }
             } else {
                 try {
-                    //send json uncompressed   
+                    // send json uncompressed   
                     const response = await fetch( url, {
                         'method': 'POST',
                         'credentials': 'include',
@@ -158,6 +161,6 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
         }
     })();
 
-    //static response for JSON Tag Template callInWindow which only supports synchronous functions
+    // static response for JSON Tag Template callInWindow which only supports synchronous functions
     return true;
 };

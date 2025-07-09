@@ -1,6 +1,8 @@
 homepage: "https://www.floriangoetting.de"
 documentation: "https://github.com/floriangoetting/json-tag"
 versions:
+  - sha: xxx
+    changeNotes: Support for setting the X-Gtm-Server-Preview Header manually in the JSON Tag Requests
   - sha: 108f34aa2f549bf9f27a0163b0787350d440d230
     changeNotes: Updated Template Description
   - sha: 2525f181474b472ec8253d7078bf05bb352b9972

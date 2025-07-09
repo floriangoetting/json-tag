@@ -57,7 +57,8 @@ const sendRequest = () => {
       globalConfig.pushResponseInDataLayer ? dataLayerOptions : false,
       data.eventSendingMethod,
       globalConfig.cleanPayload,
-      globalConfig.addCommonData
+      globalConfig.addCommonData,
+      globalConfig.xGtmServerPreviewToken
    );
 
    if(jsonTagSendData){
