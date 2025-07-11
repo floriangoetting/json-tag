@@ -84,6 +84,8 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
         payload = addCommonData ? addCommonDataToPayload(payload) : payload;
 
         const isWebKit = /AppleWebKit/i.test(navigator.userAgent) && !/Chrome|OPR|Edge|SamsungBrowser|Android/i.test(navigator.userAgent); // WebKit has issues with compressionStream :/
+        const isFetchKeepaliveSupported = 'keepalive' in new Request(''); // see https://gist.github.com/paulcollett/a9294ab8290626cad2e2cee9b45fa1b3
+        const isNavigatorSendBeaconSupported = typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function';
 
         let post_headers = {
             'Content-Type': 'application/json'
@@ -94,69 +96,81 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
             post_headers['X-Gtm-Server-Preview'] = xGtmServerPreviewToken;
         }
 
-        if( typeof (navigator.sendBeacon) !== 'function' ){
-            // in case we do not have sendBeacon, fallback to fetch...
-            sendMethod = 'fetch';
+        // define send method based on browser compatibility
+        let effectiveSendMethod = sendMethod;
+        if (sendMethod === 'sendBeacon' || sendMethod === 'fetchKeepalive') {
+            if (isFetchKeepaliveSupported) {
+                effectiveSendMethod = 'fetchKeepalive';
+            } else if (isNavigatorSendBeaconSupported) {
+                navigator.sendBeacon(url, JSON.stringify(payload));
+                return true;
+            } else {
+                effectiveSendMethod = 'fetch'; // Fallback
+            }
         }
 
-        if( sendMethod === 'sendBeacon' ){
-            navigator.sendBeacon( url, JSON.stringify(payload) );
-            return true;
+        if( !isWebKit && effectiveSendMethod === 'fetch' && enableGzip && typeof CompressionStream === 'function' ){
+            // fetch + gzip
+            try {
+                post_headers['Content-Encoding'] = 'gzip';
+
+                // Convert JSON to Stream
+                const stream = new Blob( [JSON.stringify(payload)], {
+                    'type': 'application/json',
+                }).stream();
+
+                const compressedReadableStream = stream.pipeThrough(new CompressionStream('gzip'));
+                const compressedResponse = new Response(compressedReadableStream);
+                const blob = await compressedResponse.blob();
+
+                // fetch data
+                const response = await fetch( url, {
+                    'method': 'POST',
+                    'credentials': 'include',
+                    'headers': post_headers,
+                    'body': blob // send JSON gzipped
+                });
+                
+                if (!response.ok) {
+                    throw new Error('HTTP-Error! Status: ' + response.status);
+                }
+
+                const data = await response.json();
+                pushResponseToDataLayer(data, dataLayerOptions);
+                return data;
+            } catch (error) {
+                console.log(error);
+                return null;
+            }
         } else {
-            if( !isWebKit && enableGzip && typeof CompressionStream === 'function' ){
-                try {
-                    // send json gzip compressed
-                    post_headers['Content-Encoding'] = 'gzip';
+            // fetch or fetchKeepalive, uncompressed
+            try {
+                let fetchOptions = {
+                    'method': 'POST',
+                    'credentials': 'include',
+                    'body': JSON.stringify(payload) // JSON-Body uncompressed!
+                };
 
-                    // Convert JSON to Stream
-                    const stream = new Blob( [JSON.stringify(payload)], {
-                        'type': 'application/json',
-                    }).stream();
-
-                    const compressedReadableStream = stream.pipeThrough(new CompressionStream('gzip'));
-                    const compressedResponse = new Response(compressedReadableStream);
-                    const blob = await compressedResponse.blob();
-
-                    // fetch data
-                    const response = await fetch( url, {
-                        'method': 'POST',
-                        'credentials': 'include',
-                        'headers': post_headers,
-                        'body': blob // send JSON gzipped
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('HTTP-Error! Status: ' + response.status);
-                    }
-
-                    const data = await response.json();
-                    pushResponseToDataLayer(data, dataLayerOptions);
-                    return data;
-                } catch (error) {
-                    console.log(error);
-                    return null;
+                if( effectiveSendMethod === 'fetchKeepalive' ){
+                    // add keepalive option if fetch keepalive is selected and supported
+                    fetchOptions.keepalive = true;
+                    post_headers['X-Keepalive-Request'] = 1;
                 }
-            } else {
-                try {
-                    // send json uncompressed   
-                    const response = await fetch( url, {
-                        'method': 'POST',
-                        'credentials': 'include',
-                        'headers': post_headers,
-                        'body': JSON.stringify(payload) // JSON-Body uncompressed!
-                    });
 
-                    if (!response.ok) {
-                        throw new Error('HTTP-Error! Status: ' + response.status);
-                    }
+                fetchOptions.headers = post_headers;
 
-                    const data = await response.json();
-                    pushResponseToDataLayer(data, dataLayerOptions);
-                    return data;
-                } catch (error) {
-                    console.log(error);
-                    return null;
+                const response = await fetch( url, fetchOptions);
+
+                if (!response.ok) {
+                    throw new Error('HTTP-Error! Status: ' + response.status);
                 }
+
+                const data = await response.json();
+                pushResponseToDataLayer(data, dataLayerOptions);
+                return data;
+            } catch (error) {
+                console.log(error);
+                return null;
             }
         }
     })();

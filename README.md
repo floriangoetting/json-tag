@@ -40,7 +40,7 @@ Specify the Event Name which is used to identify the Event at the Server.
 You can select one of the predefined Event Types or select "Custom" to be able to specify your own Event Type.
 
 ### Event Sending Method
-With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Send Beacon Method.
+With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Fetch Keepalive / Send Beacon Method. The Fetch Keepalive / Send Beacon Method only supports payload sizes up to 64kB and no gzip compression will be used. There is also no guarantee it will be able to push the response into the data layer.\n\nIn case Fetch Keepalive / Send Beacon is selected and Fetch Keepalive is not supported, \"sendBeacon\" is used. In this case the X-Gtm-Server-Preview header would not be set and the request will be sent uncompressed.
 
 ### Event Payload
 In this section you can specify your Event Specific Payload Key / Value Pairs by defining your JSON Keys and selecting your GTM Variables in the Payload Value fields. Global Payload Data which is relevant for all your JSON Tags should not be specified here but in the JSON Tag Variable instead. See: https://github.com/floriangoetting/json-tag-variable.

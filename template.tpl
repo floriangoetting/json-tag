@@ -137,13 +137,13 @@ ___TEMPLATE_PARAMETERS___
             "displayValue": "Fetch"
           },
           {
-            "value": "sendBeacon",
-            "displayValue": "Send Beacon"
+            "value": "fetchKeepalive",
+            "displayValue": "Fetch Keepalive / Send Beacon"
           }
         ],
         "simpleValueType": true,
         "defaultValue": "fetch",
-        "help": "With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Send Beacon Method.\n\nPlease be aware that the \"sendBeacon\" Method does not support gzip compression and does not support custom request headers. This means JSON Tag Events where \"sendBeacon\" is used will always be sent uncompressed and the X-Gtm-Server-Preview header would not be set."
+        "help": "With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Fetch Keepalive / Send Beacon Method. The Fetch Keepalive / Send Beacon Method only supports payload sizes up to 64kB and no gzip compression will be used. There is also no guarantee it will be able to push the response into the data layer.\n\nIn case Fetch Keepalive / Send Beacon is selected and Fetch Keepalive is not supported, \"sendBeacon\" is used. In this case the X-Gtm-Server-Preview header would not be set and the request will be sent uncompressed."
       }
     ]
   },
