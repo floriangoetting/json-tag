@@ -1,7 +1,7 @@
 homepage: "https://www.floriangoetting.de"
 documentation: "https://github.com/floriangoetting/json-tag"
 versions:
-  - sha: xxx
+  - sha: 1c3c3cbc125ab3cb2dbf7b3111fd8bdcc97ee58b
     changeNotes: Support for fetch keepalive requests. For JSON Tags where "sendBeacon" was selected, fetch keepalive request are used from now on if supported by the browser. Updating JSON Client and the JSON Tag Library is required.
   - sha: 62f50ab2670fffa7c1cf3f43ebe498bce6a5a6a1
     changeNotes: Support for setting the X-Gtm-Server-Preview Header manually in the JSON Tag Requests
