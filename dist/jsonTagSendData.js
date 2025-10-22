@@ -44,38 +44,25 @@ function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMet
         }
     
         return obj;
-    }    
+    }
     function pushResponseToDataLayer(data, dataLayerOptions) {
-        if (dataLayerOptions) {
-            const dataLayerName = dataLayerOptions.dataLayerName;
-            const dataLayerEventName = dataLayerOptions.dataLayerEventName;
+        if (!dataLayerOptions) return false;
 
-            window[dataLayerName] = window[dataLayerName] || [];
+        const { dataLayerName, dataLayerEventName } = dataLayerOptions;
+        window[dataLayerName] = window[dataLayerName] || [];
 
-            const eventData = { 'event': dataLayerEventName };
-            const jsonclient = {};
+        const eventData = {
+            event: dataLayerEventName,
+            _clear: true
+        };
 
-            if (data.device_id) {
-                jsonclient.device_id = data.device_id;
-            }
-            if (data.session_id) {
-                jsonclient.session_id = data.session_id;
-            }
-            if (data.tags) {
-                jsonclient.tags = data.tags;
-            }
-
-            if (Object.keys(jsonclient).length > 0) {
-                eventData.jsonclient = jsonclient;
-            }
-
-            if (Object.keys(eventData).length > 1) {
-                eventData._clear = true; 
-                window[dataLayerName].push(eventData);
-                return true;
-            }
+        // Only attach jsonclient if data has keys
+        if (data && Object.keys(data).length > 0) {
+            eventData.jsonclient = data;
         }
-        return false;
+
+        window[dataLayerName].push(eventData);
+        return true;
     }
 
     // send data
