@@ -137,13 +137,17 @@ ___TEMPLATE_PARAMETERS___
             "displayValue": "Fetch"
           },
           {
+            "value": "sendBeacon",
+            "displayValue": "Send Beacon"
+          },
+          {
             "value": "fetchKeepalive",
-            "displayValue": "Fetch Keepalive / Send Beacon"
+            "displayValue": "Fetch Keepalive"
           }
         ],
         "simpleValueType": true,
         "defaultValue": "fetch",
-        "help": "With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Fetch Keepalive / Send Beacon Method. The Fetch Keepalive / Send Beacon Method only supports payload sizes up to 64kB and no gzip compression will be used. There is also no guarantee it will be able to push the response into the data layer.\n\nIn case Fetch Keepalive / Send Beacon is selected and Fetch Keepalive is not supported, \"sendBeacon\" is used. In this case the X-Gtm-Server-Preview header would not be set and the request will be sent uncompressed."
+        "help": "With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Send Beacon or Fetch Keepalive Method. The Fetch Keepalive or Send Beacon Method only supports payload sizes up to 64kB and no gzip compression will be used. There is also no guarantee it will be able to push the response into the data layer.\n\nIn case Send Beacon is selected but not supported, \"Fetch Keepalive\" is used. If \"Fetch Keepalive\" is not supported as well, the library uses a normal \"Fetch\" request as a Fallback."
       }
     ]
   },
