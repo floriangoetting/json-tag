@@ -40,7 +40,9 @@ Specify the Event Name which is used to identify the Event at the Server.
 You can select one of the predefined Event Types or select "Custom" to be able to specify your own Event Type.
 
 ### Event Sending Method
-With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Send Beacon or Fetch Keepalive Method. The Fetch Keepalive or Send Beacon Method only supports payload sizes up to 64kB and no gzip compression will be used. There is also no guarantee it will be able to push the response into the data layer.\n\nIn case Send Beacon is selected but not supported, \"Fetch Keepalive\" is used. If \"Fetch Keepalive\" is not supported as well, the library uses a normal \"Fetch\" request as a Fallback.
+With the Event Sending Method you can define how the event requests should be sent to the server. The default Fetch Method should be fine for most cases but in case of an Exit Link Tracking you might want to consider the Send Beacon or Fetch Keepalive Method. The Fetch Keepalive or Send Beacon Method only supports payload sizes up to 64kB and no gzip compression will be used. There is also no guarantee it will be able to push the response into the data layer.
+
+In case Send Beacon is selected but not supported, "Fetch Keepalive" is used. If "Fetch Keepalive" is not supported as well, the library uses a normal "Fetch" request as a Fallback.
 
 ### Event Payload
 In this section you can specify your Event Specific Payload Key / Value Pairs by defining your JSON Keys and selecting your GTM Variables in the Payload Value fields. Global Payload Data which is relevant for all your JSON Tags should not be specified here but in the JSON Tag Variable instead. See: https://github.com/floriangoetting/json-tag-variable.
