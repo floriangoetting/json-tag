@@ -190,8 +190,6 @@ const makeTableMap = require( 'makeTableMap' );
 const encodeUri = require( 'encodeUri' );
 const logToConsole = require( 'logToConsole' );
 
-let eventData = {};
-
 const getGlobalConfiguration = () => {
   if ( data.globalConfig === 'select' ) return {};
   if ( data.globalConfig.type === 'jsontag' ) return data.globalConfig;
@@ -201,15 +199,16 @@ const getGlobalConfiguration = () => {
 const globalConfig = getGlobalConfiguration();
 
 const buildPayload = () => {
-   //global payload data
+   let eventData = {};
+   // global payload data
    if ( typeof globalConfig.globalPayloadData !== 'undefined' ) {
       eventData = makeTableMap( globalConfig.globalPayloadData, 'payloadKey', 'payloadValue' );
    }
 
-   //event payload data
+   // event payload data
    if ( typeof data.payloadData !== 'undefined' ) {
       const eventSpecificData = makeTableMap( data.payloadData, 'payloadKey', 'payloadValue' );
-      //if no global payload data is present, no loop is necessary
+      // if no global payload data is present, no loop is necessary
       if ( Object.keys( eventData ).length === 0 ) {
          eventData = eventSpecificData;
       } else {
@@ -219,7 +218,7 @@ const buildPayload = () => {
       }
    }
 
-   //set event name and event type
+   // set event name and event type
    eventData.event_name = data.eventName;
    eventData.event_type = data.eventType === 'custom' ? data.customEventType : data.eventType;
 
@@ -254,8 +253,15 @@ const sendRequest = () => {
    }
 };
 
-var libraryUrl = null;
-//inject JSON Tag Library if Library Host is set to jsDelivr or Self-hosted
+// main execution
+// cancel execution if data collection is not enabled
+const enableDataCollection = globalConfig.enableDataCollection === 'false' ? false : globalConfig.enableDataCollection;
+if ( typeof globalConfig.enableDataCollection !== 'undefined' && !enableDataCollection) {
+   return data.gtmOnSuccess();
+}
+
+let libraryUrl = null;
+// inject JSON Tag Library if Library Host is set to jsDelivr or Self-hosted
 if ( globalConfig.libraryHost === 'jsDelivr' ) {
    libraryUrl = encodeUri( 'https://cdn.jsdelivr.net/gh/floriangoetting/json-tag@' + globalConfig.libraryVersion + '/dist/jsonTagSendData-min.js' );
 } else if ( globalConfig.libraryHost === 'selfHosted' ) {
@@ -265,7 +271,7 @@ if ( globalConfig.libraryHost === 'jsDelivr' ) {
 if ( libraryUrl !== null ) {
    injectScript( libraryUrl, sendRequest, data.gtmOnFailure, 'jsonTagLibrary' );
 } else {
-   //if hosting is set to none, just send the request without any script injections
+   // if hosting is set to none, just send the request without any script injections
    sendRequest();
 }
 

@@ -1,6 +1,8 @@
 homepage: "https://www.floriangoetting.de"
 documentation: "https://github.com/floriangoetting/json-tag"
 versions:
+  - sha: xxx
+    changeNotes: Added support for "Enable Data Collection" Flag from the JSON Tag Settings Variable. This can be very handy to disable the data collection for bot traffic or based on a consent status if you don't want to use Blocking Trigger for this purpose.
   - sha: d90729860f0433639902b9c027c25aa24428ac1e
     changeNotes: Allow manual selection of event sending method. Options are "fetch", "sendBeacon" and "fetchKeepalive". Default is "fetch". Fetch Keepalive is only used if explicitly selected.
   - sha: 1c3c3cbc125ab3cb2dbf7b3111fd8bdcc97ee58b
