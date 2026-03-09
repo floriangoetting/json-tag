@@ -189,6 +189,7 @@ const callInWindow = require( 'callInWindow' );
 const makeTableMap = require( 'makeTableMap' );
 const encodeUri = require( 'encodeUri' );
 const logToConsole = require( 'logToConsole' );
+const getTimestampMillis = require('getTimestampMillis');
 
 const getGlobalConfiguration = () => {
   if ( data.globalConfig === 'select' ) return {};
@@ -221,6 +222,9 @@ const buildPayload = () => {
    // set event name and event type
    eventData.event_name = data.eventName;
    eventData.event_type = data.eventType === 'custom' ? data.customEventType : data.eventType;
+
+   // add timestamp
+   if ( globalConfig && globalConfig.addTimestamp && globalConfig.timestampEventKey) eventData[globalConfig.timestampEventKey] = getTimestampMillis();
 
    return eventData;
 };

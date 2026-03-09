@@ -1,6 +1,8 @@
 homepage: "https://www.floriangoetting.de"
 documentation: "https://github.com/floriangoetting/json-tag"
 versions:
+  - sha: xyz
+    changeNotes: Added support for "Add Timestamp" Option from the JSON Tag Settings Variable. This allows setting the timestamp client-side instead of relying on the server timestamp which can be very useful in some use cases.
   - sha: 14c506e894647ec6721d65aab71161714a0a7d30
     changeNotes: Added support for "Enable Data Collection" Flag from the JSON Tag Settings Variable. This can be very handy to disable the data collection for bot traffic or based on a consent status if you don't want to use Blocking Trigger for this purpose.
   - sha: d90729860f0433639902b9c027c25aa24428ac1e
