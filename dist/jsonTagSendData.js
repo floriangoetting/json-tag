@@ -1,5 +1,5 @@
 (function(w){
-    w.jsonTagSendData = function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMethod, cleanPayload, addCommonData, xGtmServerPreviewToken){
+    w.jsonTagSendData = function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMethod, cleanPayload, addCommonData, xGtmServerPreviewToken, enableBase64Fallback){
         // helper functions
         function addCommonDataToPayload(obj){
             obj.page_location = w.location.href;
@@ -65,6 +65,12 @@
             w[dataLayerName].push(eventData);
             return true;
         }
+        function base64EncodeUtf8(str) {
+            const bytes = new TextEncoder().encode(str); // UTF-8 Bytes
+            let binary = '';
+            bytes.forEach(b => binary += String.fromCharCode(b));
+            return btoa(binary);
+        }
 
         // send data
         (async () => {
@@ -84,13 +90,14 @@
                 post_headers['X-Gtm-Server-Preview'] = xGtmServerPreviewToken;
             }
 
+            const stringifiedPayload = JSON.stringify(payload);
+
             // define send method based on browser compatibility
             let effectiveSendMethod = sendMethod || 'fetch';
 
             if (sendMethod === 'sendBeacon') {
                 if (isNavigatorSendBeaconSupported) {
-                    navigator.sendBeacon(url, JSON.stringify(payload));
-                    return true;
+                    effectiveSendMethod = 'sendBeacon';
                 } else if (isFetchKeepaliveSupported) {
                     effectiveSendMethod = 'fetchKeepalive';
                 } else {
@@ -104,7 +111,7 @@
                     post_headers['Content-Encoding'] = 'gzip';
 
                     // Convert JSON to Stream
-                    const stream = new Blob( [JSON.stringify(payload)], {
+                    const stream = new Blob( [stringifiedPayload], {
                         'type': 'application/json',
                     }).stream();
 
@@ -132,34 +139,43 @@
                     return null;
                 }
             } else {
-                // fetch or fetchKeepalive, uncompressed
-                try {
-                    let fetchOptions = {
-                        'method': 'POST',
-                        'credentials': 'include',
-                        'body': JSON.stringify(payload) // JSON-Body uncompressed!
-                    };
+                // sendBeacon, fetchKeepalive or fetch without gzip
+                const finalPayload = enableGzip && enableBase64Fallback ? base64EncodeUtf8(stringifiedPayload) : stringifiedPayload; // base64 encode can be used as a fallback for gzip to ensure that the payload is not readable and better protected against automatic sql injection attempts
+                const endpointUrl = enableGzip && enableBase64Fallback ? url + '/ba' : url; // add /ba suffix to the URL to indicate that the payload is base64 encoded
 
-                    if( effectiveSendMethod === 'fetchKeepalive' ){
-                        // add keepalive option if fetch keepalive is selected and supported
-                        fetchOptions.keepalive = true;
-                        post_headers['X-Keepalive-Request'] = 1;
+                if (effectiveSendMethod === 'sendBeacon') {
+                    navigator.sendBeacon(endpointUrl, finalPayload);
+                    return true;
+                } else {
+                    // fetch or fetchKeepalive, uncompressed
+                    try {
+                        let fetchOptions = {
+                            'method': 'POST',
+                            'credentials': 'include',
+                            'body': finalPayload // JSON-Body uncompressed but base64 encoded if gzip option is enabled!
+                        };
+
+                        if( effectiveSendMethod === 'fetchKeepalive' ){
+                            // add keepalive option if fetch keepalive is selected and supported
+                            fetchOptions.keepalive = true;
+                            post_headers['X-Keepalive-Request'] = 1;
+                        }
+
+                        fetchOptions.headers = post_headers;
+
+                        const response = await fetch( endpointUrl, fetchOptions);
+
+                        if (!response.ok) {
+                            throw new Error('HTTP-Error! Status: ' + response.status);
+                        }
+
+                        const data = await response.json();
+                        pushResponseToDataLayer(data, dataLayerOptions);
+                        return data;
+                    } catch (error) {
+                        console.log(error);
+                        return null;
                     }
-
-                    fetchOptions.headers = post_headers;
-
-                    const response = await fetch( url, fetchOptions);
-
-                    if (!response.ok) {
-                        throw new Error('HTTP-Error! Status: ' + response.status);
-                    }
-
-                    const data = await response.json();
-                    pushResponseToDataLayer(data, dataLayerOptions);
-                    return data;
-                } catch (error) {
-                    console.log(error);
-                    return null;
                 }
             }
         })();

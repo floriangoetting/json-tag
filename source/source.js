@@ -61,7 +61,8 @@ const sendRequest = () => {
       data.eventSendingMethod,
       globalConfig.cleanPayload,
       globalConfig.addCommonData,
-      globalConfig.xGtmServerPreviewToken
+      globalConfig.xGtmServerPreviewToken,
+      globalConfig.enableBase64Fallback
    );
 
    if(jsonTagSendData){
