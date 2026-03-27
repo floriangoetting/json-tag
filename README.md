@@ -53,7 +53,7 @@ Optional in-memory event batching can be enabled via the JSON Tag configuration 
 
 `eventBatchingMaxSize`: Maximum number of events that are sent in one batch. If not specified, `20` is used.
 
-When batching is enabled, events are queued on `window` and sent together after the configured delay. Failed `fetch` and `fetchKeepalive` requests are added back to the in-memory queue for a retry with the next flush. The queue is intentionally not persisted across full page reloads.
+When batching is enabled, only events sent with the `fetch` method are queued on `window` and sent together after the configured delay. Failed `fetch` requests are added back to the in-memory queue for a retry with the next flush. Events sent with `sendBeacon` and `fetchKeepalive` bypass the queue and are sent immediately. The queue is intentionally not persisted across full page reloads.
 
 ### Event Payload
 In this section you can specify your Event Specific Payload Key / Value Pairs by defining your JSON Keys and selecting your GTM Variables in the Payload Value fields. Global Payload Data which is relevant for all your JSON Tags should not be specified here but in the JSON Tag Variable instead. See: https://github.com/floriangoetting/json-tag-variable.

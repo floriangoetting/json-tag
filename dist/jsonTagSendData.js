@@ -1,44 +1,43 @@
 (function(w){
-    const batchStateKey = '__jsonTagBatchState';
+    w.jsonTagSendData = function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMethod, cleanPayload, addCommonData, xGtmServerPreviewToken, enableBase64Fallback, batchOptions){
+        // helper functions
+        const batchStateKey = '__jsonTagBatchState';
 
-    function getBatchState() {
-        if (!w[batchStateKey]) {
-            w[batchStateKey] = {
-                queues: {}
+        function getBatchState() {
+            if (!w[batchStateKey]) {
+                w[batchStateKey] = {
+                    queues: {}
+                };
+            }
+
+            return w[batchStateKey];
+        }
+
+        function normalizeBatchOptions(batchOptions) {
+            const options = batchOptions || {};
+            const enabled = options.enabled === false || options.enabled === 'false'
+                ? false
+                : true;
+            const parsedDelay = Number(options.delay);
+            const parsedMaxSize = Number(options.maxSize);
+
+            return {
+                enabled: enabled,
+                delay: Number.isFinite(parsedDelay) && parsedDelay >= 0 ? parsedDelay : 150,
+                maxSize: Number.isFinite(parsedMaxSize) && parsedMaxSize > 0 ? parsedMaxSize : 20
             };
         }
 
-        return w[batchStateKey];
-    }
-
-    function normalizeBatchOptions(batchOptions) {
-        const options = batchOptions || {};
-        const enabled = options.enabled === false || options.enabled === 'false'
-            ? false
-            : true;
-        const parsedDelay = Number(options.delay);
-        const parsedMaxSize = Number(options.maxSize);
-
-        return {
-            enabled: enabled,
-            delay: Number.isFinite(parsedDelay) && parsedDelay >= 0 ? parsedDelay : 150,
-            maxSize: Number.isFinite(parsedMaxSize) && parsedMaxSize > 0 ? parsedMaxSize : 20
-        };
-    }
-
-    function getQueueKey(url, enableGzip, dataLayerOptions, sendMethod, xGtmServerPreviewToken, enableBase64Fallback) {
-        return JSON.stringify({
-            url: url,
-            enableGzip: enableGzip,
-            dataLayerOptions: dataLayerOptions || null,
-            sendMethod: sendMethod || 'fetch',
-            xGtmServerPreviewToken: xGtmServerPreviewToken || null,
-            enableBase64Fallback: enableBase64Fallback
-        });
-    }
-
-    w.jsonTagSendData = function jsonTagSendData(url, origPayload, enableGzip, dataLayerOptions, sendMethod, cleanPayload, addCommonData, xGtmServerPreviewToken, enableBase64Fallback, batchOptions){
-        // helper functions
+        function getQueueKey(url, enableGzip, dataLayerOptions, sendMethod, xGtmServerPreviewToken, enableBase64Fallback) {
+            return JSON.stringify({
+                url: url,
+                enableGzip: enableGzip,
+                dataLayerOptions: dataLayerOptions || null,
+                sendMethod: sendMethod || 'fetch',
+                xGtmServerPreviewToken: xGtmServerPreviewToken || null,
+                enableBase64Fallback: enableBase64Fallback
+            });
+        }
         function addCommonDataToPayload(obj){
             obj.page_location = w.location.href;
             obj.page_path = w.location.pathname;
@@ -276,12 +275,15 @@
         // send data
         (async () => {
             const normalizedBatchOptions = normalizeBatchOptions(batchOptions);
+            const requestedSendMethod = sendMethod || 'fetch';
+            const shouldBatch = normalizedBatchOptions.enabled && requestedSendMethod === 'fetch';
+            const preparedPayload = preparePayload(origPayload);
 
-            if (normalizedBatchOptions.enabled) {
+            if (shouldBatch) {
                 const queueKey = getQueueKey(url, enableGzip, dataLayerOptions, sendMethod, xGtmServerPreviewToken, enableBase64Fallback);
                 const queue = createQueue(queueKey, normalizedBatchOptions);
 
-                queue.items.push(preparePayload(origPayload));
+                queue.items.push(preparedPayload);
 
                 if (queue.items.length >= queue.options.maxSize) {
                     flushQueue(queueKey);
@@ -292,7 +294,8 @@
                 return true;
             }
 
-            return sendPayload(preparePayload(origPayload));
+            // sendBeacon and fetchKeepalive are intended as fire-and-forget methods.
+            return sendPayload(preparedPayload);
         })();
 
         // static response for JSON Tag Template callInWindow which only supports synchronous functions
