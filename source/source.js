@@ -51,6 +51,11 @@ const sendRequest = () => {
       'dataLayerName'     : globalConfig.dataLayerName,
       'dataLayerEventName': globalConfig.dataLayerEventName
    };
+   const batchOptions = {
+      'enabled': globalConfig.enableEventBatching,
+      'delay': globalConfig.eventBatchingDelay,
+      'maxSize': globalConfig.eventBatchingMaxSize
+   };
 
    const jsonTagSendData = callInWindow(
       'jsonTagSendData',
@@ -62,7 +67,8 @@ const sendRequest = () => {
       globalConfig.cleanPayload,
       globalConfig.addCommonData,
       globalConfig.xGtmServerPreviewToken,
-      globalConfig.enableBase64Fallback
+      globalConfig.enableBase64Fallback,
+      batchOptions
    );
 
    if(jsonTagSendData){
