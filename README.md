@@ -44,17 +44,6 @@ With the Event Sending Method you can define how the event requests should be se
 
 In case Send Beacon is selected but not supported, "Fetch Keepalive" is used. If "Fetch Keepalive" is not supported as well, the library uses a normal "Fetch" request as a Fallback.
 
-### Event Batching
-Optional in-memory event batching can be enabled via the JSON Tag configuration variable. The library looks for the following global configuration keys:
-
-`enableEventBatching`: Enables or disables the batching queue. Batching is active by default and can be disabled with `false`.
-
-`eventBatchingDelay`: Delay in milliseconds before queued events are flushed. If not specified, `150` is used.
-
-`eventBatchingMaxSize`: Maximum number of events that are sent in one batch. If not specified, `20` is used.
-
-When batching is enabled, only events sent with the `fetch` method are queued on `window` and sent together after the configured delay. Failed `fetch` requests are added back to the in-memory queue for a retry with the next flush. Events sent with `sendBeacon` and `fetchKeepalive` bypass the queue and are sent immediately. The queue is intentionally not persisted across full page reloads.
-
 ### Event Payload
 In this section you can specify your Event Specific Payload Key / Value Pairs by defining your JSON Keys and selecting your GTM Variables in the Payload Value fields. Global Payload Data which is relevant for all your JSON Tags should not be specified here but in the JSON Tag Variable instead. See: https://github.com/floriangoetting/json-tag-variable.
 

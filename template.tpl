@@ -239,7 +239,8 @@ const sendRequest = () => {
    const batchOptions = {
       'enabled': globalConfig.enableEventBatching,
       'delay': globalConfig.eventBatchingDelay,
-      'maxSize': globalConfig.eventBatchingMaxSize
+      'maxSize': globalConfig.eventBatchingMaxSize,
+      'maxRetries': globalConfig.eventBatchingMaxRetries
    };
 
    const jsonTagSendData = callInWindow(

@@ -20,11 +20,13 @@
                 : true;
             const parsedDelay = Number(options.delay);
             const parsedMaxSize = Number(options.maxSize);
+            const parsedMaxRetries = Number(options.maxRetries);
 
             return {
                 enabled: enabled,
                 delay: Number.isFinite(parsedDelay) && parsedDelay >= 0 ? parsedDelay : 150,
-                maxSize: Number.isFinite(parsedMaxSize) && parsedMaxSize > 0 ? parsedMaxSize : 20
+                maxSize: Number.isFinite(parsedMaxSize) && parsedMaxSize > 0 ? Math.floor(parsedMaxSize) : 20,
+                maxRetries: Number.isFinite(parsedMaxRetries) && parsedMaxRetries >= 0 ? Math.floor(parsedMaxRetries) : 3
             };
         }
 
@@ -37,6 +39,24 @@
                 xGtmServerPreviewToken: xGtmServerPreviewToken || null,
                 enableBase64Fallback: enableBase64Fallback
             });
+        }
+        function hasValidEndpointUrl(endpointUrl) {
+            if (typeof endpointUrl !== 'string') {
+                return false;
+            }
+
+            const trimmedUrl = endpointUrl.trim();
+
+            if (!trimmedUrl || trimmedUrl === 'undefined' || trimmedUrl === 'null') {
+                return false;
+            }
+
+            try {
+                new URL(trimmedUrl, w.location.href);
+                return true;
+            } catch (error) {
+                return false;
+            }
         }
         function addCommonDataToPayload(obj){
             obj.page_location = w.location.href;
@@ -216,6 +236,21 @@
             finalPayload = addCommonData ? addCommonDataToPayload(finalPayload) : finalPayload;
             return finalPayload;
         }
+        function normalizeQueueEntry(entry) {
+            if (entry && typeof entry === 'object' && Object.prototype.hasOwnProperty.call(entry, 'payload')) {
+                const retryCount = Number(entry.retryCount);
+
+                return {
+                    payload: entry.payload,
+                    retryCount: Number.isFinite(retryCount) && retryCount >= 0 ? Math.floor(retryCount) : 0
+                };
+            }
+
+            return {
+                payload: entry,
+                retryCount: 0
+            };
+        }
         function createQueue(queueKey, options) {
             const state = getBatchState();
 
@@ -257,21 +292,47 @@
             queue.timerId = null;
             queue.isSending = true;
 
-            const queuedItems = queue.items.splice(0, queue.options.maxSize);
-            const payload = queuedItems.length === 1 ? queuedItems[0] : queuedItems;
+            const queuedItems = queue.items.splice(0, queue.options.maxSize).map(normalizeQueueEntry);
+            const queuedPayloads = queuedItems.map(function(item) {
+                return item.payload;
+            });
+            const payload = queuedPayloads.length === 1 ? queuedPayloads[0] : queuedPayloads;
             const response = await sendPayload(payload);
 
             queue.isSending = false;
 
+            let shouldScheduleNextFlush = true;
+
             if (response === null) {
-                queue.items = queuedItems.concat(queue.items);
+                const failedItems = queuedItems.map(function(item) {
+                    return {
+                        payload: item.payload,
+                        retryCount: item.retryCount + 1
+                    };
+                });
+
+                queue.items = failedItems.concat(queue.items);
+
+                const reachedRetryLimit = failedItems.some(function(item) {
+                    return item.retryCount >= queue.options.maxRetries;
+                });
+
+                if (reachedRetryLimit) {
+                    // Stop timer-based retries to avoid endless loops (e.g. blocked/offline).
+                    // The queue will be retried when the next event is added.
+                    shouldScheduleNextFlush = false;
+                }
             }
 
-            if (queue.items.length > 0) {
+            if (queue.items.length > 0 && shouldScheduleNextFlush) {
                 scheduleFlush(queueKey);
             }
         }
 
+        if (!hasValidEndpointUrl(url)) {
+            console.log('[JSON Tag] Invalid endpoint URL. Please configure a valid endpointHostname and endpointPath in JSON Tag Settings.');
+            return false;
+        }
         // send data
         (async () => {
             const normalizedBatchOptions = normalizeBatchOptions(batchOptions);
@@ -283,7 +344,19 @@
                 const queueKey = getQueueKey(url, enableGzip, dataLayerOptions, sendMethod, xGtmServerPreviewToken, enableBase64Fallback);
                 const queue = createQueue(queueKey, normalizedBatchOptions);
 
-                queue.items.push(preparedPayload);
+                // A newly observed event should reactivate paused queue items.
+                queue.items = queue.items.map(normalizeQueueEntry).map(function(item) {
+                    if (item.retryCount >= queue.options.maxRetries) {
+                        return {
+                            payload: item.payload,
+                            retryCount: 0
+                        };
+                    }
+
+                    return item;
+                });
+
+                queue.items.push({ payload: preparedPayload, retryCount: 0 });
 
                 if (queue.items.length >= queue.options.maxSize) {
                     flushQueue(queueKey);
