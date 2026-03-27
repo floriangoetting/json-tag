@@ -314,7 +314,7 @@
                 queue.items = failedItems.concat(queue.items);
 
                 const reachedRetryLimit = failedItems.some(function(item) {
-                    return item.retryCount >= queue.options.maxRetries;
+                    return item.retryCount > queue.options.maxRetries;
                 });
 
                 if (reachedRetryLimit) {
@@ -346,7 +346,7 @@
 
                 // A newly observed event should reactivate paused queue items.
                 queue.items = queue.items.map(normalizeQueueEntry).map(function(item) {
-                    if (item.retryCount >= queue.options.maxRetries) {
+                    if (item.retryCount > queue.options.maxRetries) {
                         return {
                             payload: item.payload,
                             retryCount: 0
