@@ -3,7 +3,7 @@
         // helper functions
         const batchStateKey = '__jsonTagBatchState';
 
-        function getBatchState() {
+        const getBatchState = () => {
             if (!w[batchStateKey]) {
                 w[batchStateKey] = {
                     queues: {}
@@ -11,9 +11,9 @@
             }
 
             return w[batchStateKey];
-        }
+        };
 
-        function normalizeBatchOptions(batchOptions) {
+        const normalizeBatchOptions = (batchOptions) => {
             const options = batchOptions || {};
             const enabled = options.enabled === false || options.enabled === 'false'
                 ? false
@@ -28,9 +28,9 @@
                 maxSize: Number.isFinite(parsedMaxSize) && parsedMaxSize > 0 ? Math.floor(parsedMaxSize) : 20,
                 maxRetries: Number.isFinite(parsedMaxRetries) && parsedMaxRetries >= 0 ? Math.floor(parsedMaxRetries) : 3
             };
-        }
+        };
 
-        function getQueueKey(url, enableGzip, dataLayerOptions, sendMethod, xGtmServerPreviewToken, enableBase64Fallback) {
+        const getQueueKey = (url, enableGzip, dataLayerOptions, sendMethod, xGtmServerPreviewToken, enableBase64Fallback) => {
             return JSON.stringify({
                 url: url,
                 enableGzip: enableGzip,
@@ -39,8 +39,9 @@
                 xGtmServerPreviewToken: xGtmServerPreviewToken || null,
                 enableBase64Fallback: enableBase64Fallback
             });
-        }
-        function hasValidEndpointUrl(endpointUrl) {
+        };
+
+        const hasValidEndpointUrl = (endpointUrl) => {
             if (typeof endpointUrl !== 'string') {
                 return false;
             }
@@ -57,8 +58,9 @@
             } catch (error) {
                 return false;
             }
-        }
-        function addCommonDataToPayload(obj){
+        };
+
+        const addCommonDataToPayload = (obj) => {
             obj.page_location = w.location.href;
             obj.page_path = w.location.pathname;
             obj.page_hostname = w.location.hostname;
@@ -70,8 +72,9 @@
             obj.language = navigator && navigator.language;
 
             return obj;
-        }
-        function cleanEventData(obj) {
+        };
+
+        const cleanEventData = (obj) => {
             if (Array.isArray(obj)) {
                 return obj
                     .map(cleanEventData)
@@ -102,8 +105,9 @@
             }
         
             return obj;
-        }
-        function pushResponseToDataLayer(data, dataLayerOptions) {
+        };
+
+        const pushResponseToDataLayer = (data, dataLayerOptions) => {
             if (!dataLayerOptions) return false;
 
             const { dataLayerName, dataLayerEventName } = dataLayerOptions;
@@ -121,13 +125,66 @@
 
             w[dataLayerName].push(eventData);
             return true;
-        }
-        function base64EncodeUtf8(str) {
+        };
+
+        const base64EncodeUtf8 = (str) => {
             const bytes = new TextEncoder().encode(str); // UTF-8 Bytes
             let binary = '';
             bytes.forEach(b => binary += String.fromCharCode(b));
             return btoa(binary);
-        }
+        };
+
+        const preparePayload = (payload) => {
+            let finalPayload = cleanPayload ? cleanEventData(payload) : payload;
+            finalPayload = addCommonData ? addCommonDataToPayload(finalPayload) : finalPayload;
+            return finalPayload;
+        };
+
+        const normalizeQueueEntry = (entry) => {
+            if (entry && typeof entry === 'object' && Object.prototype.hasOwnProperty.call(entry, 'payload')) {
+                const retryCount = Number(entry.retryCount);
+
+                return {
+                    payload: entry.payload,
+                    retryCount: Number.isFinite(retryCount) && retryCount >= 0 ? Math.floor(retryCount) : 0
+                };
+            }
+
+            return {
+                payload: entry,
+                retryCount: 0
+            };
+        };
+
+        const createQueue = (queueKey, options) => {
+            const state = getBatchState();
+
+            if (!state.queues[queueKey]) {
+                state.queues[queueKey] = {
+                    items: [],
+                    timerId: null,
+                    isSending: false,
+                    options: options
+                };
+            } else {
+                state.queues[queueKey].options = options;
+            }
+
+            return state.queues[queueKey];
+        };
+        
+        const scheduleFlush = (queueKey) => {
+            const queue = getBatchState().queues[queueKey];
+
+            if (!queue || queue.timerId || queue.isSending) {
+                return;
+            }
+
+            queue.timerId = w.setTimeout( () => {
+                flushQueue(queueKey);
+            }, queue.options.delay);
+        };
+
         async function sendPayload(payload) {
             const isWebKit = /AppleWebKit/i.test(navigator.userAgent) && !/Chrome|OPR|Edge|SamsungBrowser|Android/i.test(navigator.userAgent); // WebKit has issues with compressionStream :/
             const isFetchKeepaliveSupported = 'keepalive' in new Request(''); // see https://gist.github.com/paulcollett/a9294ab8290626cad2e2cee9b45fa1b3
@@ -231,53 +288,7 @@
                 }
             }
         }
-        function preparePayload(payload) {
-            let finalPayload = cleanPayload ? cleanEventData(payload) : payload;
-            finalPayload = addCommonData ? addCommonDataToPayload(finalPayload) : finalPayload;
-            return finalPayload;
-        }
-        function normalizeQueueEntry(entry) {
-            if (entry && typeof entry === 'object' && Object.prototype.hasOwnProperty.call(entry, 'payload')) {
-                const retryCount = Number(entry.retryCount);
 
-                return {
-                    payload: entry.payload,
-                    retryCount: Number.isFinite(retryCount) && retryCount >= 0 ? Math.floor(retryCount) : 0
-                };
-            }
-
-            return {
-                payload: entry,
-                retryCount: 0
-            };
-        }
-        function createQueue(queueKey, options) {
-            const state = getBatchState();
-
-            if (!state.queues[queueKey]) {
-                state.queues[queueKey] = {
-                    items: [],
-                    timerId: null,
-                    isSending: false,
-                    options: options
-                };
-            } else {
-                state.queues[queueKey].options = options;
-            }
-
-            return state.queues[queueKey];
-        }
-        function scheduleFlush(queueKey) {
-            const queue = getBatchState().queues[queueKey];
-
-            if (!queue || queue.timerId || queue.isSending) {
-                return;
-            }
-
-            queue.timerId = w.setTimeout(function() {
-                flushQueue(queueKey);
-            }, queue.options.delay);
-        }
         async function flushQueue(queueKey) {
             const state = getBatchState();
             const queue = state.queues[queueKey];
@@ -293,7 +304,7 @@
             queue.isSending = true;
 
             const queuedItems = queue.items.splice(0, queue.options.maxSize).map(normalizeQueueEntry);
-            const queuedPayloads = queuedItems.map(function(item) {
+            const queuedPayloads = queuedItems.map( (item) => {
                 return item.payload;
             });
             const payload = queuedPayloads.length === 1 ? queuedPayloads[0] : queuedPayloads;
@@ -304,7 +315,7 @@
             let shouldScheduleNextFlush = true;
 
             if (response === null) {
-                const failedItems = queuedItems.map(function(item) {
+                const failedItems = queuedItems.map( (item) => {
                     return {
                         payload: item.payload,
                         retryCount: item.retryCount + 1
@@ -313,7 +324,7 @@
 
                 queue.items = failedItems.concat(queue.items);
 
-                const reachedRetryLimit = failedItems.some(function(item) {
+                const reachedRetryLimit = failedItems.some( (item) => {
                     return item.retryCount > queue.options.maxRetries;
                 });
 
@@ -329,8 +340,9 @@
             }
         }
 
+        // start of the actual code exection logic
         if (!hasValidEndpointUrl(url)) {
-            console.log('[JSON Tag] Invalid endpoint URL. Please configure a valid endpointHostname and endpointPath in JSON Tag Settings.');
+            console.log('[JSON Tag] Invalid endpoint URL detected. Please double-check the JSON Tag Settings in GTM.');
             return false;
         }
         // send data
@@ -345,7 +357,7 @@
                 const queue = createQueue(queueKey, normalizedBatchOptions);
 
                 // A newly observed event should reactivate paused queue items.
-                queue.items = queue.items.map(normalizeQueueEntry).map(function(item) {
+                queue.items = queue.items.map(normalizeQueueEntry).map( (item) => {
                     if (item.retryCount > queue.options.maxRetries) {
                         return {
                             payload: item.payload,
