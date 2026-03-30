@@ -1,7 +1,7 @@
 homepage: "https://www.floriangoetting.de"
 documentation: "https://github.com/floriangoetting/json-tag"
 versions:
-  - sha: xyz
+  - sha: d0b9a3a51d42affd00ce14814ae9ba0be0a19fa4
     changeNotes: Added support for event batching. Event batching is used to retry sending failed events (network or server errors) or to combine mutiple events which are sent fast after each other in a combined request. A library update to JSON Tag Library version 2.0.0 is required.
   - sha: 30f36119ec4fb9f999b2abfa9921bceee2ffb8e3
     changeNotes: Added support for the Base64 Encoding Fallback option which can be activated from the JSON Tag Settings Variable. Updating JSON Client, JSON Tag Settings and the JSON Tag Library to version 1.6.0 is required.
